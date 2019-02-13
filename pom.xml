@@ -21,7 +21,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <prerequisites>
-        <maven>3.0</maven>
+        <maven>3.3.9</maven>
     </prerequisites>
 
     <name>KoSIT XML Prüftool Implementierung</name>
@@ -47,8 +47,8 @@
     </developers>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <version.jacoco>0.7.9</version.jacoco>
-        <version.lombok>1.16.16</version.lombok>
+        <version.jacoco>0.8.3</version.jacoco>
+        <version.lombok>1.18.6</version.lombok>
         <version.saxon-he>9.7.0-15</version.saxon-he>
         <version.slf4j>1.7.25</version.slf4j>
     </properties>
@@ -89,6 +89,11 @@
             <version>3.5</version>
         </dependency>
         <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>2.3.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>3.8.0</version>
@@ -121,7 +126,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.1</version>
+                <version>3.8.0</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -139,7 +144,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.1</version>
+                <version>3.1.1</version>
                 <configuration>
                     <excludes>
                         <exclude>simplelogger.properties</exclude>
@@ -147,48 +152,60 @@
                     </excludes>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <id>jdk11+</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>validationtool-${project.version}-standalone</finalName>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>de.kosit.validationtool.cmd.CommandLineApplication</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>jdk8</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>validationtool-${project.version}-java8-standalone</finalName>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.glassfish.jaxb:jaxb-runtime</exclude>
+                                    <exclude>com.sun.istack:istack-commons-runtime</exclude>
+                                    <exclude>com.sun.xml.fastinfoset:FastInfoset</exclude>
+                                    <exclude>jakarta.activation:jakarta.activation-api</exclude>
+                                    <exclude>jakarta.xml.bind:jakarta.xml.bind-api</exclude>
+                                    <exclude>org.jvnet.staxex:stax-ex</exclude>
+                                    <exclude>org.glassfish.jaxb:txw2</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>de.kosit.validationtool.cmd.CommandLineApplication</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
-                    <execution>
-                        <id>standalone</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <archive>
-                                <manifest>
-                                    <mainClass>
-                                        de.kosit.validationtool.cmd.CommandLineApplication
-                                    </mainClass>
-                                </manifest>
-                            </archive>
-                            <descriptors>
-                                <descriptor>src/main/assembly/assembly-standalone.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>full</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <archive>
-                                <manifest>
-                                    <mainClass>
-                                        de.kosit.validationtool.cmd.CommandLineApplication
-                                    </mainClass>
-                                </manifest>
-                            </archive>
-                            <descriptors>
-                                <descriptor>src/main/assembly/assembly-full.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                    </execution>
                     <execution>
                         <id>standalone_dist</id>
                         <phase>package</phase>
@@ -249,7 +266,7 @@
             <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.13.2</version>
+                <version>0.14.0</version>
                 <executions>
                     <execution>
                         <goals>
